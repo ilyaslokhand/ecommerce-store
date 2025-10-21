@@ -1,0 +1,13 @@
+const asyncHandler = (fn) => async (req, res, next) => {
+  try {
+    return await fn(req, res, next);  // ← yaha return likhna better practice hai
+  } catch (error) {
+    res.status(error.code || 500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+export default asyncHandler
