@@ -23,8 +23,10 @@ app.use(cookieParser()); // Cookies ko parse karna
 
 
 import Authroute from "./Routes/Auth.route.js"
+import Productroute from "./Routes/Product.route.js"
 
 app.use('/api/auth', Authroute);
+app.use('/api/products', Productroute)
 
 
 export default app;
