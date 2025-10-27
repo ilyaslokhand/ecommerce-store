@@ -1,5 +1,6 @@
 import {v2 as cloudinary} from 'cloudinary';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 dotenv.config({ path: "./.env" });
 
@@ -9,4 +10,25 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-export default cloudinary;
+
+const UploadOnCloudinary = async (ImageLocalPath)=>{
+
+     if (!ImageLocalPath) return null;
+
+    try {
+        const result = await cloudinary.uploader.upload(ImageLocalPath,{
+            resource_type: "auto",
+            folder: 'products',
+        });
+
+        fs.unlinkSync(ImageLocalPath);
+        return result.secure_url;
+        
+    } catch (error) {
+         fs.unlink(localFilePath);
+        console.log("file upload failed", error);
+        return null;
+    }
+}
+
+export default UploadOnCloudinary;
