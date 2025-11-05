@@ -1,10 +1,10 @@
 function getCloudinaryPublicId(ImageUrl){
   try {
     const parts = ImageUrl.split('/');
-    const filename  = parts[parts.length -1];
-    const publicId = filename.split('.')[0];
-    console.log("Public ID:", publicId)
-    return publicId;
+    const uploadIndex = parts.findIndex(p => p === 'upload');
+    const publicPath = parts.slice(uploadIndex + 2).join('/');
+   const publicId = publicPath.split('.')[0];
+    return publicId
   } catch (error) {
     return null;
   }
@@ -13,17 +13,34 @@ function getCloudinaryPublicId(ImageUrl){
 export default getCloudinaryPublicId;
 
 
-// example:
 
-// url = https://res.cloudinary.com/demo/image/upload/v1710000000/my-folder/my-image.jpg
-// Is URL me "my-image.jpg" ka public ID hota hai "my-image" (bina extension .jpg ke).
-// ImageUrl.split('/')
-// 👉 Yeh line URL ko / ke base pe todti hai.
-// parts[parts.length - 1]
-// filename.split('.')[0]
-// 👉 Ab filename ko . ke base pe todta hai:
-// "my-image.jpg" => ["my-image", "jpg"]
-// Aur .split('.')[0] matlab "my-image"
+//     const parts = ImageUrl.split('/');
+//     👉 Yeh line image URL ko '/' ke basis pe tod deti hai —
+// matlab ek URL list ban jaata hai.
 
-// Return karta hai publicId
-// "my-image"
+// Example: ["https:", "", "res.cloudinary.com", "mycloud", "image", "upload", "v123", "products", "photo123.png"]
+
+
+// const uploadIndex = parts.findIndex(p => p === 'upload');
+// 👉 Yeh line dekhti hai ki "upload" kis jagah (index number) par hai list me.
+// Kyun?
+// Kyuki Cloudinary me "upload" ke baad hi folder aur file name aata hai.
+
+// Example me "upload" 5th index pe tha.
+
+// const publicPath = parts.slice(uploadIndex + 1).join('/');
+// 👉 Yeh line "upload" ke baad ka sab part le leti hai (slice karta hai).
+// To hume milta hai:
+
+// css
+// Copy code
+// ["v123", "products", "photo123.png"]
+// Aur join('/') se firse string ban jaati hai:
+
+// arduino
+// Copy code
+// "v123/products/photo123.png"
+
+// const publicId = publicPath.split('.')[0];
+// 👉 Yeh line .png ya .jpg jaise file extension hata deti hai.
+// To bacha hua part hota hai:

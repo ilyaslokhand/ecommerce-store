@@ -87,7 +87,11 @@ const deleteProduct = asyncHandler(async(req,res)=>{
     };
 
     if(product.image){
-        await cloudinary.uploader.destroy(getCloudinaryPublicId(product.image));
+    const publicId = getCloudinaryPublicId(product.image);
+    console.log('Attempting to destroy publicId:', publicId);
+    const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
+    console.log('Cloudinary destroy result:', result);
+      
     }
     await Product.findByIdAndDelete(id);
 
@@ -95,5 +99,49 @@ const deleteProduct = asyncHandler(async(req,res)=>{
 
 })
 
+const getrecommendedProducts = asyncHandler(async (req, res) => {
+  const ProductsList = await Product.aggregate([
+    { $sample: { size: 3 } },
+    {
+      $project: {
+        name: 1,
+        price: 1,
+        _id: 1,
+        image: 1,
+        description: 1,
+      },
+    },
+  ]);
 
-export { getallProducts,getFeaturedProducts,createProduct,deleteProduct };
+  res.status(200).json(
+    new apiResponse(ProductsList, 200, "Recommended products fetched successfully")
+  );
+});
+
+const getproductbyCatagory = asyncHandler(async(req,res)=>{
+  const {catagory} = req.params;
+  const Products = await Product.find({catagory});
+  res.status(200).json(new apiResponse(Products,200,"Products fetched successfully by catagory"))
+
+})
+
+const togglefeaturedProduct = asyncHandler(async(req,res)=>{
+  const {id} = req.params;
+  const product = await Product.findById(id);
+  if(product){
+    product.isFeatured = !product.isFeatured;
+    const updatedProduct = await product.save();
+    await updatedProductcacheInRedis();
+    res.status(200).json(new apiResponse(updatedProduct,200,"Product featured status toggled successfully"))
+  }else{
+    throw new apiError(404, "Product not found");
+  }
+})
+
+async function updatedProductcacheInRedis() {
+  const featuredProducts = await Product.find({isFeatured:true}).lean(); // lean will provide plain js object
+  await redis.set("featured_products", JSON.stringify(featuredProducts))
+}
+
+
+export { getallProducts,getFeaturedProducts,createProduct,deleteProduct,getrecommendedProducts,getproductbyCatagory,togglefeaturedProduct };
